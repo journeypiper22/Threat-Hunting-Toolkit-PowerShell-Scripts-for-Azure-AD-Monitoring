@@ -6,7 +6,7 @@ This GitHub repository includes two PowerShell scripts designed to support real-
 
 ## Contents
 
-* `ThreatHunter.ps1`: Continuously monitors sign-in logs for suspicious activity using filters like app, OS, browser, and excluded region (e.g., Louisiana). Automatically launches a second script for deeper inspection.
+* `ThreatHunter.ps1`: Continuously monitors sign-in logs for suspicious activity using filters like app, OS, browser, and excluded region. Automatically launches a second script for deeper inspection.
 * `UserSessionReview.ps1`: Retrieves and formats detailed sign-in history for a given user over the last 5 days, supports session revocation, and optional GUI output.
 
 ---
@@ -21,7 +21,9 @@ This script provides **continuous, real-time monitoring** of Azure AD sign-in lo
 * Operating system (e.g., `Windows10`)
 * Browser version (e.g., `Chrome 134.0.0`)
 * Excludes IPv6 addresses (can be modified)
-* Excludes sign-ins from a specific state (e.g., `Louisiana`)
+* Excludes sign-ins from a specific U.S. state (e.g., `Texas`, `Utah`) — this can help suppress expected internal activity
+
+> **Note:** The script has been reviewed to ensure it contains no identifying information about the organization or environment it was originally used in. It is safe for public use, research, or demonstration purposes.
 
 ### Use Cases
 
@@ -46,7 +48,7 @@ This script provides **continuous, real-time monitoring** of Azure AD sign-in lo
 | `$Browser`       | Browser version (default: `Chrome 134.0.0`)      |
 | `$sleepValue`    | Delay between checks (in seconds)                |
 | `$lookback`      | Time window for log collection (minutes)         |
-| `$ExcludedState` | Region to ignore (default: `Louisiana`)          |
+| `$ExcludedState` | U.S. region to ignore (e.g., `Texas`)            |
 
 ---
 
@@ -112,7 +114,7 @@ This script is automatically called by the main threat hunter, or can be run man
 ### Run threat hunting script (manual test)
 
 ```powershell
-.\ThreatHunter.ps1 -AppName "OfficeHome" -OS "Windows10" -Browser "Chrome 134.0.0" -ExcludedState "Louisiana" -sleepValue 60 -lookback 30
+.\ThreatHunter.ps1 -AppName "OfficeHome" -OS "Windows10" -Browser "Chrome 134.0.0" -ExcludedState "Texas" -sleepValue 60 -lookback 30
 ```
 
 ### Run individual user session review
@@ -134,4 +136,11 @@ This script is automatically called by the main threat hunter, or can be run man
 * `ThreatHunter.ps1` script will re-run automatically every `$sleepValue` seconds to maintain real-time visibility.
 
 ---
+
+## Credits
+
+This toolkit was developed and maintained by Sandie Hazelwood to support defenders and threat hunters in Azure AD environments.
+
+If you find this useful, feel free to fork, or share feedback.
+
 

@@ -38,6 +38,16 @@ This script provides **continuous, real-time monitoring** of Azure AD sign-in lo
 * Pop-up alerts for new activity
 * Launches `UserSessionReview.ps1` for each new user detected
 * Outputs formatted tables and preserves results
+* Requires user to manually set the full file path to UserSessionReview.ps1 in the script
+
+### Setup Note
+Before running ThreatHunter.ps1, you must update the following line with the actual path to the UserSessionReview.ps1 script on your system:
+```powershell
+$scriptPath = "<path_to_review_script>"  # Replace this with the real path, e.g., "C:\Scripts\UserSessionReview.ps1"
+```
+If this path is not set correctly, the follow-up investigations for each new user sign-in will not work.
+
+
 
 ### Parameters
 

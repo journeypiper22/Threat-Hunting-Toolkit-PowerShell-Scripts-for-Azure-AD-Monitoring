@@ -13,6 +13,10 @@ This GitHub repository includes two PowerShell scripts designed to support real-
 
 ## `ThreatHunter.ps1`
 
+![image](https://github.com/user-attachments/assets/ff6b40e0-bdf3-4cf8-ba78-85c2566e759c)
+
+![image](https://github.com/user-attachments/assets/0133a90a-46bc-4543-aaef-5173c0af20e4)
+
 ### Description
 
 This script provides **continuous, real-time monitoring** of Azure AD sign-in logs using the Microsoft Graph API. It filters events by:
@@ -63,6 +67,9 @@ If this path is not set correctly, the follow-up investigations for each new use
 ---
 
 ## `UserSessionReview.ps1`
+
+![image](https://github.com/user-attachments/assets/dbfe5fc0-c1e7-436d-954f-81ee83c242b3)
+
 
 ### Description
 

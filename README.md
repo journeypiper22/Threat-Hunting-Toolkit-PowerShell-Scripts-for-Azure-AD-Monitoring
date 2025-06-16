@@ -8,7 +8,7 @@ Designed to quickly identify and monitor active compromises in Azure AD environm
 
 ## Contents
 
-* `ThreatHunter.ps1`: Continuously monitors sign-in logs for suspicious activity using filters like app, OS, browser, and excluded region. Automatically launches a second script for deeper inspection.
+* `ThreatHunter.ps1`: Continuously monitors sign-in logs for suspicious activity using filters like app, OS, browser, location, IP address, and version. Automatically launches a second script for deeper inspection.
 * `UserSessionReview.ps1`: Retrieves and formats detailed sign-in history for a given user over the last 5 days, supports session revocation, and optional GUI output.
 
 ---
@@ -25,11 +25,12 @@ This script provides **continuous, real-time monitoring** of Azure AD sign-in lo
 
 * Application name (e.g., `OfficeHome`)
 * Operating system (e.g., `Windows10`)
-* Browser version (e.g., `Chrome 134.0.0`)
-* Excludes IPv6 addresses (can be modified)
-* Excludes sign-ins from a specific U.S. state (e.g., `Texas`, `Utah`) — this can help suppress expected internal activity
+* Browser version (e.g., `Chrome 137.0.0`)
+* City, state, or country
+* IPv4 or IPv6 address (optional)
+* Excludes sign-ins from a specific U.S. state (e.g., `Texas`, `Utah`)
+* Optional filtering by IP address and IP version (`IPv4`, `IPv6`, or both)
 
-> **Note:** The script has been reviewed to ensure it contains no identifying information about the organization or environment it was originally used in. It is safe for public use, research, or demonstration purposes.
 
 ### Use Cases
 
@@ -39,12 +40,14 @@ This script provides **continuous, real-time monitoring** of Azure AD sign-in lo
 
 ### Features
 
-* Graph API filtering by sign-in metadata
-* IPv6 exclusion to reduce noise (optional)
+* Microsoft Graph API filtering by sign-in metadata
+* Optional exclusion of IPv4 or IPv6 traffic
+* New parameter to search for specific IP address
 * Pop-up alerts for new activity
 * Launches `UserSessionReview.ps1` for each new user detected
-* Outputs formatted tables and preserves results
-* Requires user to manually set the full file path to UserSessionReview.ps1 in the script
+* Displays formatted tables in Central Time (CDT)
+* Automatically loops at defined intervals for continuous monitoring
+* Case-insensitive parameter support for IP version
 
 ### Setup Note
 Before running ThreatHunter.ps1, you must update the following line with the actual path to the UserSessionReview.ps1 script on your system:
@@ -57,14 +60,21 @@ If this path is not set correctly, the follow-up investigations for each new use
 
 ### Parameters
 
-| Parameter        | Description                                      |
-| ---------------- | ------------------------------------------------ |
-| `$AppName`       | Application to filter by (default: `OfficeHome`) |
-| `$OS`            | OS to filter by (default: `Windows10`)           |
-| `$Browser`       | Browser version (default: `Chrome 134.0.0`)      |
-| `$sleepValue`    | Delay between checks (in seconds)                |
-| `$lookback`      | Time window for log collection (minutes)         |
-| `$ExcludedState` | U.S. region to ignore (e.g., `Texas`)            |
+| Parameter        | Description                                    |
+| ---------------- | ---------------------------------------------- |
+| `$AppName`       | Application to filter (e.g., `OfficeHome`)     |
+| `$OS`            | Operating System (e.g., `Windows10`)           |
+| `$Browser`       | Browser version (e.g., `Chrome 137.0.0`)       |
+| `$City`          | City for geo-filtering (optional)              |
+| `$State`         | State to include in filtering                  |
+| `$Country`       | Country or region                              |
+| `$ExcludedState` | U.S. state to exclude (e.g., `Texas`)          |
+| `$IPAddress`     | Search for specific IP address (optional)      |
+| `$IPVersion`     | Choose `IPv4`, `IPv6`, or leave blank for both |
+| `$sleepValue`    | Delay between scans in seconds (e.g., `60`)    |
+| `$lookback`      | Lookback window in minutes (e.g., `60`)        |
+
+> **Note:** IP version selection is case-insensitive.
 
 ---
 
@@ -81,15 +91,15 @@ This script is automatically called by the main threat hunter, or can be run man
 
 * Review historical logins for a specific user
 * Determine geographic or behavioral anomalies
-* Optionally revoke active sessions if compromise is suspected
+* Revoke active sessions if compromise is suspected
 
 ### Features
 
-* Pulls 5 days of sign-in history for a specified user
-* Converts timestamps to Central Time
-* Displays sign-in app, location, device status, and Conditional Access
-* Optionally opens data in Out-GridView
-* Option to revoke active sessions via Microsoft Graph
+* Retrieves 5 days of sign-in history for a user
+* Converts timestamps to Central Time (CDT)
+* Displays app, IP, device, and CA status
+* Optionally opens results in `Out-GridView`
+* Supports revoking active sessions via Graph API
 
 ### Parameters
 
@@ -108,23 +118,26 @@ This script is automatically called by the main threat hunter, or can be run man
   Install-Module Microsoft.Graph -Scope CurrentUser
   ```
 * Azure AD `AuditLog.Read.All` permissions (delegated)
-* Internet access to reach Microsoft Graph
+
 
 ---
 
 ## Optional Customizations
 
-* To **include IPv6 addresses**, remove or comment out this line in `ThreatHunter.ps1`:
+* To **include all IP types**, leave the `-IPVersion` parameter blank
+
+* To **only include IPv6**, use:
 
   ```powershell
-  $filteredResults = $results | Where-Object { $_.IPAddress -notmatch ":" }
+  -IPVersion "IPv6"
   ```
 
-* To **exclude IPv4 instead**, modify the condition like so:
+* To **search for a specific IP address**, use:
 
   ```powershell
-  $filteredResults = $results | Where-Object { $_.IPAddress -match ":" }
+  -IPAddress "10.1.2.3"
   ```
+
 
 ---
 
@@ -133,7 +146,7 @@ This script is automatically called by the main threat hunter, or can be run man
 ### Run threat hunting script (manual test)
 
 ```powershell
-.\ThreatHunter.ps1 -AppName "OfficeHome" -OS "Windows10" -Browser "Chrome 134.0.0" -ExcludedState "Texas" -sleepValue 60 -lookback 30
+.\ThreatHunter.ps1 -AppName "OfficeHome" -OS "Windows10" -Browser "Chrome 137.0.0" -ExcludedState "Texas" -IPVersion "IPv4" -sleepValue 60 -lookback 30
 ```
 
 ### Run individual user session review
@@ -158,8 +171,8 @@ This script is automatically called by the main threat hunter, or can be run man
 
 ## Credits
 
-This toolkit was developed and maintained by Sandie Hazelwood to support defenders and threat hunters in Azure AD environments.
+This toolkit was developed and maintained by **Sandie Hazelwood** to support defenders and threat hunters in Azure AD environments.
 
-If you find this useful, feel free to fork, or share feedback.
+If you find this useful, feel free to star, or share feedback.
 
 
